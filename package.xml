@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package format="2">
+    <name>shadowpiano</name>
+    <version>0.0.0</version>
+    <description>ShadowHand Piano Demo</description>
+
+    <!-- One maintainer tag required, multiple allowed, one person per tag -->
+    <maintainer email="kganguly@cs.umd.edu">Kanishka Ganguly</maintainer>
+
+    <!-- One license tag required, multiple allowed, one license per tag -->
+    <license>GPLv3</license>
+
+    <!-- Author tags are optional, multiple are allowed, one per tag -->
+    <author email="kganguly@cs.umd.edu">Kanishka Ganguly</author>
+
+    <buildtool_depend>catkin</buildtool_depend>
+
+    <build_depend>roscpp</build_depend>
+    <build_depend>rospy</build_depend>
+    <build_depend>shadowlibs</build_depend>
+
+    <exec_depend>roscpp</exec_depend>
+    <exec_depend>rospy</exec_depend>
+    <exec_depend>shadowlibs</exec_depend>
+</package>
