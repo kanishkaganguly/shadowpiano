@@ -246,32 +246,6 @@ def main():
         located_keys_status, key_points_front, key_points_left = viewer.locate_keys()
         # located_keys_status,img_keys = viewer.detect_keys()
 
-    imgf = (viewer.img_front).copy()
-    for x,y in key_points_front:
-        imgf = cv2.circle(imgf, (x,y), 5, (0,0,255), -1)
-    imgl = (viewer.img_left).copy()
-    for x,y in key_points_left:
-        imgl = cv2.circle(imgl, (x,y), 5, (0,0,255), -1)
-    hf,wf,_ = imgf.shape
-    hl,wl,_ = imgl.shape
-    h = max(hl,hf)
-    img_keys = np.zeros((h,wf+wl,3),dtype=np.uint8)
-    img_keys[0:hf,0:wf,:] = imgf
-    img_keys[0:hl,wf:,:] = imgl
-
-    cv2.namedWindow('Warp', cv2.WINDOW_NORMAL)
-    cv2.resizeWindow('Warp',1000,500)
-    savepath = data_path + "key_locations_reproj.png"
-    cv2.imwrite(savepath,img_keys)    
-    cv2.imshow("Warp",img_keys)
-    cv2.waitKey(0)
-    cv2.destroyWindow('Warp')
-
-
-    if key_points_front.shape[0] != key_points_left.shape[0]:
-        print("no. of keys didn't match!!!")
-        return 
-
     camera_front_info_msg = rospy.wait_for_message("/front_logitech_webcam/webcam/camera_info", CameraInfo)
     camera_left_info_msg = rospy.wait_for_message("/left_logitech_webcam/webcam/camera_info", CameraInfo)
     K_f = np.array(camera_front_info_msg.K).reshape((3,3))
@@ -280,7 +254,6 @@ def main():
     K_l = K_l.astype(np.float64)
     K_f_inv = np.linalg.inv(K_f)
     K_l_inv = np.linalg.inv(K_l)
-    
 
     # # Homogenous Image coordinates
     xf = np.hstack((key_points_front,np.ones((key_points_front.shape[0],1))))
@@ -295,29 +268,6 @@ def main():
 
     X = LinearTriangulation(K_f, K_l, A_f, A_l, xf, xl)
 
-    # X_homo = np.hstack((X,np.ones((X.shape[0],1))))
-
-    # P_l = np.matmul(K_l,A_l[0:3,:])
-    # P_f = np.matmul(K_f,A_f[0:3,:])
-
-    # xl_homo = np.matmul(P_l,X_homo.T)
-    # xf_homo = np.matmul(P_f,X_homo.T)
-    # xl_homo = xl_homo/xl_homo[2,:]
-    # xf_homo = xf_homo/xf_homo[2,:]
-    # xl_homo = xl_homo.T
-    # xf_homo = xf_homo.T
-
-    # for x,y in xf_homo[:,0:2]:
-    #     imgf = cv2.circle(imgf, (int(x),int(y)), 5, (255,0,0), -1)
-    # for x,y in xl_homo[:,0:2]:
-    #     imgl = cv2.circle(imgl, (int(x),int(y)), 5, (255,0,0), -1)
-    # hf,wf,_ = imgf.shape
-    # hl,wl,_ = imgl.shape
-    # h = max(hl,hf)
-    # img_keys = np.zeros((h,wf+wl,3),dtype=np.uint8)
-    # img_keys[0:hf,0:wf,:] = imgf
-    # img_keys[0:hl,wf:,:] = imgl
-
     (trans_ra,rot_ra) = tf_listener.lookupTransform('/world', '/ra_tool0', rospy.Time(0))
     (trans_rh,rot_rh) = tf_listener.lookupTransform('/world', '/rh_fftip', rospy.Time(0))
     x_ra_to_rh = np.array([trans_ra[0]-trans_rh[0],trans_ra[1]-trans_rh[1],trans_ra[2]-trans_rh[2]]).reshape(1,3)
@@ -331,22 +281,6 @@ def main():
         br.sendTransform((X[8,0], X[8,1], X[8,2]),rot_ra,rospy.Time.now(),"ninth_key","world")
         rate.sleep()
 
-    # rate = rospy.Rate(1000.0)
-    # while not rospy.is_shutdown():
-    #     try:
-    #         (trans,rot) = tf_listener.lookupTransform('/front_cam', '/avg_marker_5', rospy.Time(0))
-    #     except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-    #         continue
-
-    #     z = trans[2] #+ 0.12
-    #     X = z * np.matmul(x,K_f_inv.T)
-    #     br.sendTransform((X[0,0], X[0,1], X[0,2]),rot,rospy.Time.now(),"first_key","front_cam")
-    #     rate.sleep()
-
-    # left_t_path = data_path + "piano_left_new.png"
-    # front_t_path = data_path + "piano_front_new.png"
-    # cv2.imwrite(left_t_path,viewer.img_left)
-    # cv2.imwrite(front_t_path,viewer.img_front)
 
 if __name__ == "__main__":
     main()
